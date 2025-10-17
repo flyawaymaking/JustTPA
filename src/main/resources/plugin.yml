@@ -1,0 +1,49 @@
+name: JustTPA
+version: 1.0.0
+main: com.flyaway.justtpa.JustTPA
+api-version: 1.21
+description: Custom TPA plugin
+author: FlyAwayMaking
+website: https://github.com/flyawaymaking
+
+commands:
+  tpa:
+    description: Send teleport request to player
+    usage: /tpa <player>
+  tpaccept:
+    description: Accept teleport request
+    usage: /tpaccept <player>
+  tpdeny:
+    description: Deny teleport request
+    usage: /tpdeny <player>
+  tpcancel:
+    description: Cancel your teleport request
+    usage: /tpcancel <player>
+  tpahere:
+    description: Request player to teleport to you
+    usage: /tpahere <player>
+
+permissions:
+  justtpa.*:
+    description: All permissions for TPA plugin
+    children:
+      justtpa.tpa: true
+      justtpa.tpaccept: true
+      justtpa.tpdeny: true
+      justtpa.tpcancel: true
+      justtpa.tpahere: true
+  justtpa.tpa:
+    description: Allow using /tpa command
+    default: true
+  justtpa.tpaccept:
+    description: Allow using /tpaccept command
+    default: true
+  justtpa.tpdeny:
+    description: Allow using /tpdeny command
+    default: true
+  justtpa.tpcancel:
+    description: Allow using /tpcancel command
+    default: true
+  justtpa.tpahere:
+    description: Allow using /tpahere command
+    default: true
