@@ -1,0 +1,64 @@
+prefix: "<gray>[<aqua>ТП</aqua>]</gray>"
+
+messages:
+  # Общие ошибки
+  error.only-players: "<red>Эта команда только для игроков!"
+  error.no-permission: "<red>У вас нет прав для использования этой команды!"
+  error.player-not-found: "<red>Игрок не найден или не в сети!"
+  error.self-request: "<red>Нельзя отправить запрос самому себе!"
+  error.teleport-disabled: "<red>Этот игрок отключил запросы на телепортацию!"
+  error.already-sent: "<red>Вы уже отправили запрос этому игроку!"
+  error.no-requests: "<red>У вас нет активных запросов на телепортацию!"
+  error.request-not-found: "<red>Запрос на телепортацию не найден или истек!"
+  error.specific-request-not-found: "<red>Запрос от указанного игрока не найден!"
+  error.request-expired: "<red>Запрос на телепортацию истек!"
+  error.sender-offline: "<red>Игрок вышел с сервера!"
+  error.teleport-failed: "<red>Ошибка при телепортации!"
+
+  # Команды usage
+  command.tpa.usage: "<red>Использование: /tpa <ник>"
+  command.tpahere.usage: "<red>Использование: /tpahere <ник>"
+  command.tpaccept.usage: "<red>Использование: /tpaccept <ник>"
+  command.tpdeny.usage: "<red>Использование: /tpdeny <ник>"
+  command.tpcancel.usage: "<red>Использование: /tpcancel <ник>"
+  command.reload.usage: "<red>Использование: /justtpa reload"
+
+  # TPA сообщения
+  tpa.sent: "<green>✓ <gray>Запрос на телепортацию отправлен игроку <yellow>{target}"
+  tpa.received: "<aqua>✈ <yellow>{sender}<gray> хочет телепортироваться к вам!"
+  tpa.accepted.target: "<green>✓ <gray>Вы приняли запрос телепортации от <yellow>{sender}"
+  tpa.accepted.sender: "<green>✓ <yellow>{target}<gray> принял ваш запрос телепортации!"
+
+  # TPAHere сообщения
+  tpahere.sent: "<green>✓ <gray>Запрос на телепортацию к вам отправлен игроку <yellow>{target}"
+  tpahere.received: "<aqua>✈ <yellow>{sender}<gray> хочет, чтобы вы телепортировались к нему!"
+  tpahere.accepted.target: "<green>✓ <gray>Вы приняли запрос телепортации к игроку <yellow>{sender}"
+  tpahere.accepted.sender: "<green>✓ <yellow>{target}<gray> принял ваш запрос телепортации к вам!"
+
+  # TPCancel сообщения
+  tpcancel.no-requests: "<red>У вас нет активных запросов телепортации!"
+  tpcancel.no-request-to-player: "<red>У вас нет активного запроса к этому игроку!"
+  tpcancel.cancelled: "<yellow>✓ <gray>Вы отменили запрос телепортации к <yellow>{target}"
+  tpcancel.cancelled-generic: "<yellow>✓ <gray>Вы отменили запрос телепортации!"
+  tpcancel.received: "<red>✕ <yellow>{sender}<gray> отменил запрос телепортации!"
+
+  # TPDeny сообщения
+  tpdeny.denied: "<red>✕ <gray>Вы отклонили запрос телепортации от <yellow>{sender}"
+  tpdeny.denied-generic: "<red>✕ <gray>Вы отклонили запрос телепортации!"
+  tpdeny.received: "<red>✕ <yellow>{target}<gray> отклонил ваш запрос телепортации!"
+
+  # Истекшие запросы
+  request.expired.target: "<yellow>⏰ <gray>Запрос на телепортацию истек!"
+  request.expired.sender: "<yellow>⏰ <gray>Ваш запрос телепортации истек!"
+
+  # Кнопки
+  button.accept: "<green>[✓ ПРИНЯТЬ]"
+  button.hover.accept: "<gray>Нажмите чтобы принять запрос"
+  button.cancel: "<red>[✕ ОТМЕНИТЬ]"
+  button.hover.cancel: "<gray>Нажмите чтобы отклонить запрос"
+  button.deny: "<red>[✕ ОТКЛОНИТЬ]"
+  button.hover.deny: "<gray>Нажмите чтобы отменить запрос"
+
+  # Перезагрузка конфига
+  reload.success: "<green>Конфиг плагина перезагружен!"
+  reload.no-permission: "<red>Нет прав для перезагрузки конфига!"

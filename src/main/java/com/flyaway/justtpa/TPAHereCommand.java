@@ -10,7 +10,6 @@ import org.bukkit.util.StringUtil;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,34 +25,33 @@ public class TPAHereCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text("Эта команда только для игроков!", NamedTextColor.RED));
+            plugin.sendMessage(sender, plugin.getMessage("error.only-players"));
             return true;
         }
 
         if (!player.hasPermission("justtpa.tpahere")) {
-            player.sendMessage(Component.text("У вас нет прав для использования этой команды!", NamedTextColor.RED));
+            plugin.sendMessage(player, plugin.getMessage("error.no-permission"));
             return true;
         }
 
         if (args.length != 1) {
-            player.sendMessage(Component.text("Использование: /tpahere <ник>", NamedTextColor.RED)); // 🔴 ИСПРАВЛЕНО
+            plugin.sendMessage(player, plugin.getMessage("command.tpahere.usage"));
             return true;
         }
 
         Player target = Bukkit.getPlayer(args[0]);
         if (target == null) {
-            player.sendMessage(Component.text("Игрок не найден или не в сети!", NamedTextColor.RED));
+            plugin.sendMessage(player, plugin.getMessage("error.player-not-found"));
             return true;
         }
 
         if (target.equals(player)) {
-            player.sendMessage(Component.text("Нельзя отправить запрос самому себе!", NamedTextColor.RED));
+            plugin.sendMessage(player, plugin.getMessage("error.self-request"));
             return true;
         }
 
-        // Проверяем tptoggle
         if (!isTeleportEnabled(target)) {
-            player.sendMessage(Component.text("Этот игрок отключил запросы на телепортацию!", NamedTextColor.RED));
+            plugin.sendMessage(player, plugin.getMessage("error.teleport-disabled"));
             return true;
         }
 
@@ -61,7 +59,7 @@ public class TPAHereCommand implements CommandExecutor, TabCompleter {
         JustTPA.TPARequest existingRequest = plugin.getPendingRequests().get(target.getUniqueId());
         if (existingRequest != null && existingRequest.getSender().equals(player.getUniqueId())) {
             if (!existingRequest.isExpired()) {
-                player.sendMessage(Component.text("Вы уже отправили запрос этому игроку!", NamedTextColor.RED));
+                plugin.sendMessage(player, plugin.getMessage("error.already-sent"));
                 return true;
             }
         }
@@ -71,54 +69,42 @@ public class TPAHereCommand implements CommandExecutor, TabCompleter {
         plugin.getPendingRequests().put(target.getUniqueId(), request);
 
         // Сообщение отправителю
-        Component senderMessage = Component.text()
-                .append(Component.text("✓ ", NamedTextColor.GREEN))
-                .append(Component.text("Запрос на телепортацию к вам отправлен игроку ", NamedTextColor.GRAY))
-                .append(Component.text(target.getName(), NamedTextColor.YELLOW))
+        Component senderMessage = plugin.getMessage("tpahere.sent")
+                .replaceText(builder -> builder.matchLiteral("{target}").replacement(target.getName()))
                 .append(Component.newline())
-                .append(createCancelButton(target.getName()))
-                .build();
+                .append(createCancelButton(target.getName()));
 
-        player.sendMessage(senderMessage);
+        plugin.sendMessage(player, senderMessage);
 
         // Сообщение получателю
-        Component targetMessage = Component.text()
-                .append(Component.text("✈ ", NamedTextColor.AQUA))
-                .append(Component.text(player.getName(), NamedTextColor.YELLOW))
-                .append(Component.text(" хочет, чтобы вы телепортировались к нему!", NamedTextColor.GRAY))
+        Component targetMessage = plugin.getMessage("tpahere.received")
+                .replaceText(builder -> builder.matchLiteral("{sender}").replacement(player.getName()))
                 .append(Component.newline())
-                .append(createAcceptButton())
-                .append(Component.text(" "))
-                .append(createDenyButton())
-                .build();
+                .append(createAcceptButton(player.getName()))
+                .append(Component.space())
+                .append(createDenyButton(player.getName()));
 
-        target.sendMessage(targetMessage);
+        plugin.sendMessage(target, targetMessage);
 
         return true;
     }
 
     private Component createCancelButton(String targetName) {
-        return Component.text()
-                .append(Component.text("[✕ ОТМЕНИТЬ]", NamedTextColor.RED))
+        return plugin.getMessage("button.cancel")
                 .clickEvent(ClickEvent.runCommand("/tpcancel " + targetName))
-                .hoverEvent(Component.text("Нажмите чтобы отменить запрос", NamedTextColor.GRAY))
-                .build();
+                .hoverEvent(plugin.getMessage("button.hover.cancel"));
     }
 
-    private Component createAcceptButton() {
-        return Component.text()
-                .append(Component.text("[✓ ПРИНЯТЬ]", NamedTextColor.GREEN))
-                .clickEvent(ClickEvent.runCommand("/tpaccept"))
-                .hoverEvent(Component.text("Нажмите чтобы принять запрос", NamedTextColor.GRAY))
-                .build();
+    private Component createAcceptButton(String senderName) {
+        return plugin.getMessage("button.accept")
+                .clickEvent(ClickEvent.runCommand("/tpaccept " + senderName))
+                .hoverEvent(plugin.getMessage("button.hover.accept"));
     }
 
-    private Component createDenyButton() {
-        return Component.text()
-                .append(Component.text("[✕ ОТКЛОНИТЬ]", NamedTextColor.RED))
-                .clickEvent(ClickEvent.runCommand("/tpdeny"))
-                .hoverEvent(Component.text("Нажмите чтобы отклонить запрос", NamedTextColor.GRAY))
-                .build();
+    private Component createDenyButton(String senderName) {
+        return plugin.getMessage("button.deny")
+                .clickEvent(ClickEvent.runCommand("/tpdeny " + senderName))
+                .hoverEvent(plugin.getMessage("button.hover.deny"));
     }
 
     private boolean isTeleportEnabled(Player player) {
@@ -129,10 +115,9 @@ public class TPAHereCommand implements CommandExecutor, TabCompleter {
                 return (boolean) user.getClass().getMethod("isTeleportEnabled").invoke(user);
             }
         } catch (Exception ex) {
-            // Если не можем проверить, считаем что tptoggle выключен
             plugin.getLogger().warning("Не удалось проверить tptoggle для игрока " + player.getName());
         }
-        return false;
+        return true;
     }
 
     @Override

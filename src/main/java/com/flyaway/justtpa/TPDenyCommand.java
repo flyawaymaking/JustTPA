@@ -6,9 +6,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-
 public class TPDenyCommand implements CommandExecutor {
     private final JustTPA plugin;
 
@@ -19,12 +16,12 @@ public class TPDenyCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player target)) {
-            sender.sendMessage(Component.text("Эта команда только для игроков!", NamedTextColor.RED));
+            plugin.sendMessage(sender, plugin.getMessage("error.only-players"));
             return true;
         }
 
         if (!target.hasPermission("justtpa.tpdeny")) {
-            target.sendMessage(Component.text("У вас нет прав для использования этой команды!", NamedTextColor.RED));
+            plugin.sendMessage(target, plugin.getMessage("error.no-permission"));
             return true;
         }
 
@@ -32,7 +29,7 @@ public class TPDenyCommand implements CommandExecutor {
         if (args.length == 0) {
             JustTPA.TPARequest request = findLatestRequest(target);
             if (request == null) {
-                target.sendMessage(Component.text("У вас нет активных запросов на телепортацию!", NamedTextColor.RED));
+                plugin.sendMessage(target, plugin.getMessage("error.no-requests"));
                 return true;
             }
 
@@ -40,7 +37,7 @@ public class TPDenyCommand implements CommandExecutor {
         }
 
         if (args.length != 1) {
-            target.sendMessage(Component.text("Использование: /tpdeny [ник]", NamedTextColor.RED));
+            plugin.sendMessage(target, plugin.getMessage("command.tpdeny.usage"));
             return true;
         }
 
@@ -48,7 +45,7 @@ public class TPDenyCommand implements CommandExecutor {
         JustTPA.TPARequest request = plugin.getPendingRequests().get(target.getUniqueId());
 
         if (request == null || request.isExpired()) {
-            target.sendMessage(Component.text("Запрос на телепортацию не найден или истек!", NamedTextColor.RED));
+            plugin.sendMessage(target, plugin.getMessage("error.request-not-found"));
             if (request != null) {
                 plugin.getPendingRequests().remove(target.getUniqueId());
             }
@@ -58,7 +55,7 @@ public class TPDenyCommand implements CommandExecutor {
         // Проверяем, что запрос от указанного игрока
         Player senderPlayer = Bukkit.getPlayer(request.getSender());
         if (senderPlayer == null || !senderPlayer.getName().equalsIgnoreCase(args[0])) {
-            target.sendMessage(Component.text("Запрос от указанного игрока не найден!", NamedTextColor.RED));
+            plugin.sendMessage(target, plugin.getMessage("error.specific-request-not-found"));
             return true;
         }
 
@@ -86,19 +83,18 @@ public class TPDenyCommand implements CommandExecutor {
     private boolean processDeny(JustTPA.TPARequest request, Player target) {
         Player senderPlayer = Bukkit.getPlayer(request.getSender());
 
-        // Уведомления
-        target.sendMessage(Component.text()
-                .append(Component.text("✕ ", NamedTextColor.RED))
-                .append(Component.text("Вы отклонили запрос телепортации от ", NamedTextColor.GRAY))
-                .append(Component.text(senderPlayer != null ? senderPlayer.getName() : "игрока", NamedTextColor.YELLOW))
-                .build());
-
+        // Уведомление получателю
         if (senderPlayer != null) {
-            senderPlayer.sendMessage(Component.text()
-                    .append(Component.text("✕ ", NamedTextColor.RED))
-                    .append(Component.text(target.getName(), NamedTextColor.YELLOW))
-                    .append(Component.text(" отклонил ваш запрос телепортации!", NamedTextColor.GRAY))
-                    .build());
+            plugin.sendMessage(target, plugin.getMessage("tpdeny.denied")
+                    .replaceText(builder -> builder.matchLiteral("{sender}").replacement(senderPlayer.getName())));
+        } else {
+            plugin.sendMessage(target, plugin.getMessage("tpdeny.denied-generic"));
+        }
+
+        // Уведомление отправителю
+        if (senderPlayer != null) {
+            plugin.sendMessage(senderPlayer, plugin.getMessage("tpdeny.received")
+                    .replaceText(builder -> builder.matchLiteral("{target}").replacement(target.getName())));
         }
 
         // Удаляем запрос

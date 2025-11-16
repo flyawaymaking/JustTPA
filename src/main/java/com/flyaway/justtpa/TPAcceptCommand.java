@@ -6,9 +6,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-
 public class TPAcceptCommand implements CommandExecutor {
     private final JustTPA plugin;
 
@@ -19,29 +16,27 @@ public class TPAcceptCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player target)) {
-            sender.sendMessage(Component.text("Эта команда только для игроков!", NamedTextColor.RED));
+            plugin.sendMessage(sender, plugin.getMessage("error.only-players"));
             return true;
         }
 
         if (!target.hasPermission("justtpa.tpaccept")) {
-            target.sendMessage(Component.text("У вас нет прав для использования этой команды!", NamedTextColor.RED));
+            plugin.sendMessage(target, plugin.getMessage("error.no-permission"));
             return true;
         }
 
-        // 🔴 ДОБАВЛЯЕМ ОБРАБОТКУ КОМАНДЫ БЕЗ АРГУМЕНТОВ
+        // Обработка команды без аргументов
         if (args.length == 0) {
-            // Ищем последний/активный запрос для этого игрока
             JustTPA.TPARequest request = findLatestRequest(target);
             if (request == null) {
-                target.sendMessage(Component.text("У вас нет активных запросов на телепортацию!", NamedTextColor.RED));
+                plugin.sendMessage(target, plugin.getMessage("error.no-requests"));
                 return true;
             }
-
             return processRequest(request, target);
         }
 
         if (args.length != 1) {
-            target.sendMessage(Component.text("Использование: /tpaccept [ник]", NamedTextColor.RED));
+            plugin.sendMessage(target, plugin.getMessage("command.tpaccept.usage"));
             return true;
         }
 
@@ -49,7 +44,7 @@ public class TPAcceptCommand implements CommandExecutor {
         JustTPA.TPARequest request = plugin.getPendingRequests().get(target.getUniqueId());
 
         if (request == null || request.isExpired()) {
-            target.sendMessage(Component.text("Запрос на телепортацию не найден или истек!", NamedTextColor.RED));
+            plugin.sendMessage(target, plugin.getMessage("error.request-not-found"));
             if (request != null) {
                 plugin.getPendingRequests().remove(target.getUniqueId());
             }
@@ -59,14 +54,13 @@ public class TPAcceptCommand implements CommandExecutor {
         // Проверяем, что запрос от указанного игрока
         Player senderPlayer = Bukkit.getPlayer(request.getSender());
         if (senderPlayer == null || !senderPlayer.getName().equalsIgnoreCase(args[0])) {
-            target.sendMessage(Component.text("Запрос от указанного игрока не найден!", NamedTextColor.RED));
+            plugin.sendMessage(target, plugin.getMessage("error.specific-request-not-found"));
             return true;
         }
 
         return processRequest(request, target);
     }
 
-    // ПОИСК ПОСЛЕДНЕГО ЗАПРОСА
     private JustTPA.TPARequest findLatestRequest(Player target) {
         JustTPA.TPARequest latestRequest = null;
         long latestTimestamp = 0;
@@ -85,21 +79,21 @@ public class TPAcceptCommand implements CommandExecutor {
 
     private boolean processRequest(JustTPA.TPARequest request, Player target) {
         if (request.isExpired()) {
-            target.sendMessage(Component.text("Запрос на телепортацию истек!", NamedTextColor.RED));
+            plugin.sendMessage(target, plugin.getMessage("error.request-expired"));
             plugin.getPendingRequests().remove(target.getUniqueId());
             return true;
         }
 
         Player senderPlayer = Bukkit.getPlayer(request.getSender());
         if (senderPlayer == null) {
-            target.sendMessage(Component.text("Игрок вышел с сервера!", NamedTextColor.RED));
+            plugin.sendMessage(target, plugin.getMessage("error.sender-offline"));
             plugin.getPendingRequests().remove(target.getUniqueId());
             return true;
         }
 
         try {
             if (request.isTPHere()) {
-                // 🔴 ТЕЛЕПОРТАЦИЯ ДЛЯ TPHERE: получатель -> отправитель
+                // Телепортация для TPHERE: получатель -> отправитель
                 boolean teleportSuccess = target.teleport(senderPlayer.getLocation());
 
                 if (!teleportSuccess) {
@@ -107,20 +101,14 @@ public class TPAcceptCommand implements CommandExecutor {
                 }
 
                 // Уведомления для tphere
-                target.sendMessage(Component.text()
-                        .append(Component.text("✓ ", NamedTextColor.GREEN))
-                        .append(Component.text("Вы приняли запрос телепортации к игроку ", NamedTextColor.GRAY))
-                        .append(Component.text(senderPlayer.getName(), NamedTextColor.YELLOW))
-                        .build());
+                plugin.sendMessage(target, plugin.getMessage("tpahere.accepted.target")
+                        .replaceText(builder -> builder.matchLiteral("{sender}").replacement(senderPlayer.getName())));
 
-                senderPlayer.sendMessage(Component.text()
-                        .append(Component.text("✓ ", NamedTextColor.GREEN))
-                        .append(Component.text(target.getName(), NamedTextColor.YELLOW))
-                        .append(Component.text(" принял ваш запрос телепортации к вам!", NamedTextColor.GRAY))
-                        .build());
+                plugin.sendMessage(senderPlayer, plugin.getMessage("tpahere.accepted.sender")
+                        .replaceText(builder -> builder.matchLiteral("{target}").replacement(target.getName())));
 
             } else {
-                // 🔴 ТЕЛЕПОРТАЦИЯ ДЛЯ TPA: отправитель -> получатель
+                // Телепортация для TPA: отправитель -> получатель
                 boolean teleportSuccess = senderPlayer.teleport(target.getLocation());
 
                 if (!teleportSuccess) {
@@ -128,22 +116,16 @@ public class TPAcceptCommand implements CommandExecutor {
                 }
 
                 // Уведомления для tpa
-                target.sendMessage(Component.text()
-                        .append(Component.text("✓ ", NamedTextColor.GREEN))
-                        .append(Component.text("Вы приняли запрос телепортации от ", NamedTextColor.GRAY))
-                        .append(Component.text(senderPlayer.getName(), NamedTextColor.YELLOW))
-                        .build());
+                plugin.sendMessage(target, plugin.getMessage("tpa.accepted.target")
+                        .replaceText(builder -> builder.matchLiteral("{sender}").replacement(senderPlayer.getName())));
 
-                senderPlayer.sendMessage(Component.text()
-                        .append(Component.text("✓ ", NamedTextColor.GREEN))
-                        .append(Component.text(target.getName(), NamedTextColor.YELLOW))
-                        .append(Component.text(" принял ваш запрос телепортации!", NamedTextColor.GRAY))
-                        .build());
+                plugin.sendMessage(senderPlayer, plugin.getMessage("tpa.accepted.sender")
+                        .replaceText(builder -> builder.matchLiteral("{target}").replacement(target.getName())));
             }
 
         } catch (Exception e) {
             plugin.getLogger().warning("Ошибка при телепортации: " + e.getMessage());
-            target.sendMessage(Component.text("Ошибка при телепортации!", NamedTextColor.RED));
+            plugin.sendMessage(target, plugin.getMessage("error.teleport-failed"));
             return true;
         }
 

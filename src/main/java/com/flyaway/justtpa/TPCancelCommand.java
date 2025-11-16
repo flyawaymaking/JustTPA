@@ -6,9 +6,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-
 public class TPCancelCommand implements CommandExecutor {
     private final JustTPA plugin;
 
@@ -19,12 +16,12 @@ public class TPCancelCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text("Эта команда только для игроков!", NamedTextColor.RED));
+            plugin.sendMessage(sender, plugin.getMessage("error.only-players"));
             return true;
         }
 
         if (!player.hasPermission("justtpa.tpcancel")) {
-            player.sendMessage(Component.text("У вас нет прав для использования этой команды!", NamedTextColor.RED));
+            plugin.sendMessage(player, plugin.getMessage("error.no-permission"));
             return true;
         }
 
@@ -32,7 +29,7 @@ public class TPCancelCommand implements CommandExecutor {
         if (args.length == 0) {
             JustTPA.TPARequest request = findLatestSentRequest(player);
             if (request == null) {
-                player.sendMessage(Component.text("У вас нет активных запросов телепортации!", NamedTextColor.RED));
+                plugin.sendMessage(player, plugin.getMessage("tpcancel.no-requests"));
                 return true;
             }
 
@@ -40,21 +37,21 @@ public class TPCancelCommand implements CommandExecutor {
         }
 
         if (args.length != 1) {
-            player.sendMessage(Component.text("Использование: /tpcancel [ник]", NamedTextColor.RED));
+            plugin.sendMessage(player, plugin.getMessage("command.tpcancel.usage"));
             return true;
         }
 
         // Обработка команды с указанием ника
         Player target = Bukkit.getPlayer(args[0]);
         if (target == null) {
-            player.sendMessage(Component.text("Игрок не найден!", NamedTextColor.RED));
+            plugin.sendMessage(player, plugin.getMessage("error.player-not-found"));
             return true;
         }
 
         JustTPA.TPARequest request = plugin.getPendingRequests().get(target.getUniqueId());
 
         if (request == null || !request.getSender().equals(player.getUniqueId())) {
-            player.sendMessage(Component.text("У вас нет активного запроса к этому игроку!", NamedTextColor.RED));
+            plugin.sendMessage(player, plugin.getMessage("tpcancel.no-request-to-player"));
             return true;
         }
 
@@ -82,19 +79,18 @@ public class TPCancelCommand implements CommandExecutor {
     private boolean processCancel(JustTPA.TPARequest request, Player sender) {
         Player targetPlayer = Bukkit.getPlayer(request.getTarget());
 
-        // Уведомления
-        sender.sendMessage(Component.text()
-                .append(Component.text("✓ ", NamedTextColor.YELLOW))
-                .append(Component.text("Вы отменили запрос телепортации к ", NamedTextColor.GRAY))
-                .append(Component.text(targetPlayer != null ? targetPlayer.getName() : "игроку", NamedTextColor.YELLOW))
-                .build());
-
+        // Уведомление отправителю
         if (targetPlayer != null) {
-            targetPlayer.sendMessage(Component.text()
-                    .append(Component.text("✕ ", NamedTextColor.RED))
-                    .append(Component.text(sender.getName(), NamedTextColor.YELLOW))
-                    .append(Component.text(" отменил запрос телепортации!", NamedTextColor.GRAY))
-                    .build());
+            plugin.sendMessage(sender, plugin.getMessage("tpcancel.cancelled")
+                    .replaceText(builder -> builder.matchLiteral("{target}").replacement(targetPlayer.getName())));
+        } else {
+            plugin.sendMessage(sender, plugin.getMessage("tpcancel.cancelled-generic"));
+        }
+
+        // Уведомление получателю
+        if (targetPlayer != null) {
+            plugin.sendMessage(targetPlayer, plugin.getMessage("tpcancel.received")
+                    .replaceText(builder -> builder.matchLiteral("{sender}").replacement(sender.getName())));
         }
 
         // Удаляем запрос

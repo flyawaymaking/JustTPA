@@ -1,31 +1,47 @@
 name: JustTPA
-version: 1.0.0
+version: 1.1.0
 main: com.flyaway.justtpa.JustTPA
 api-version: 1.21
-description: Custom TPA plugin
+description: Кастомные сообщения телепортации игроков
 author: FlyAwayMaking
 website: https://github.com/flyawaymaking
+softdepend:
+  - Essentials
 
 commands:
+  justtpa:
+    description: Перезагрузка конфига
+    usage: /<command> <reload>
+    permission: justtpa.reload
   tpa:
-    description: Send teleport request to player
+    description: Отправить запрос на телепортацию игроку
     usage: /tpa <player>
+    permission: justtpa.tpa
   tpaccept:
-    description: Accept teleport request
+    description: Принять запрос на телепортацию
     usage: /tpaccept <player>
+    permission: justtpa.tpaccept
   tpdeny:
-    description: Deny teleport request
+    description: Отклонить запрос на телепортацию
     usage: /tpdeny <player>
+    permission: justtpa.tpdeny
   tpcancel:
-    description: Cancel your teleport request
+    description: Отмените свой запрос на телепортацию
     usage: /tpcancel <player>
+    permission: justtpa.tpcancel
   tpahere:
-    description: Request player to teleport to you
+    description: Попросите игрока телепортироваться к вам
     usage: /tpahere <player>
+    permission: justtpa.tpahere
 
 permissions:
   justtpa.*:
-    description: All permissions for TPA plugin
+    description: Все права плагина JustTPA
+    children:
+      justtpa.user: true
+      justtpa.reload: true
+  justtpa.user:
+    description: Права для игроков
     children:
       justtpa.tpa: true
       justtpa.tpaccept: true
@@ -33,17 +49,20 @@ permissions:
       justtpa.tpcancel: true
       justtpa.tpahere: true
   justtpa.tpa:
-    description: Allow using /tpa command
+    description: Разрешить использование /tpa command
     default: true
   justtpa.tpaccept:
-    description: Allow using /tpaccept command
+    description: Разрешить использование /tpaccept command
     default: true
   justtpa.tpdeny:
-    description: Allow using /tpdeny command
+    description: Разрешить использование /tpdeny command
     default: true
   justtpa.tpcancel:
-    description: Allow using /tpcancel command
+    description: Разрешить использование /tpcancel command
     default: true
   justtpa.tpahere:
-    description: Allow using /tpahere command
+    description: Разрешить использование /tpahere command
     default: true
+  justtpa.reload:
+    description: Разрешить использование /justtpa reload
+    default: op
