@@ -18,12 +18,10 @@ public class TPDenyCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player target)) {
             sender.sendMessage(Component.text("Эта команда только для игроков!", NamedTextColor.RED));
             return true;
         }
-
-        Player target = (Player) sender;
 
         if (!target.hasPermission("justtpa.tpdeny")) {
             target.sendMessage(Component.text("У вас нет прав для использования этой команды!", NamedTextColor.RED));

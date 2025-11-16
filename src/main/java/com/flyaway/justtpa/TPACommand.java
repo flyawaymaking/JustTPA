@@ -11,11 +11,9 @@ import org.bukkit.util.StringUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class TPACommand implements CommandExecutor, TabCompleter {
@@ -26,12 +24,10 @@ public class TPACommand implements CommandExecutor, TabCompleter {
     }
 
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             sender.sendMessage(Component.text("Эта команда только для игроков!", NamedTextColor.RED));
             return true;
         }
-
-        Player player = (Player) sender;
 
         if (!player.hasPermission("justtpa.tpa")) {
             player.sendMessage(Component.text("У вас нет прав для использования этой команды!", NamedTextColor.RED));
@@ -142,7 +138,10 @@ public class TPACommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
+            Player senderPlayer = sender instanceof Player ? (Player) sender : null;
+
             List<String> playerNames = Bukkit.getOnlinePlayers().stream()
+                    .filter(p -> senderPlayer == null || senderPlayer.canSee(p)) // фильтр ваниша
                     .map(Player::getName)
                     .collect(Collectors.toList());
 

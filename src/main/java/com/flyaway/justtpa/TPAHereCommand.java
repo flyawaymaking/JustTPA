@@ -18,47 +18,45 @@ import java.util.stream.Collectors;
 
 public class TPAHereCommand implements CommandExecutor, TabCompleter {
     private final JustTPA plugin;
-    
+
     public TPAHereCommand(JustTPA plugin) {
         this.plugin = plugin;
     }
-    
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             sender.sendMessage(Component.text("Эта команда только для игроков!", NamedTextColor.RED));
             return true;
         }
-        
-        Player player = (Player) sender;
 
         if (!player.hasPermission("justtpa.tpahere")) {
             player.sendMessage(Component.text("У вас нет прав для использования этой команды!", NamedTextColor.RED));
             return true;
         }
-        
+
         if (args.length != 1) {
             player.sendMessage(Component.text("Использование: /tpahere <ник>", NamedTextColor.RED)); // 🔴 ИСПРАВЛЕНО
             return true;
         }
-        
+
         Player target = Bukkit.getPlayer(args[0]);
         if (target == null) {
             player.sendMessage(Component.text("Игрок не найден или не в сети!", NamedTextColor.RED));
             return true;
         }
-        
+
         if (target.equals(player)) {
             player.sendMessage(Component.text("Нельзя отправить запрос самому себе!", NamedTextColor.RED));
             return true;
         }
-        
+
         // Проверяем tptoggle
         if (!isTeleportEnabled(target)) {
             player.sendMessage(Component.text("Этот игрок отключил запросы на телепортацию!", NamedTextColor.RED));
             return true;
         }
-        
+
         // Проверяем, есть ли уже активный запрос
         JustTPA.TPARequest existingRequest = plugin.getPendingRequests().get(target.getUniqueId());
         if (existingRequest != null && existingRequest.getSender().equals(player.getUniqueId())) {
@@ -67,11 +65,11 @@ public class TPAHereCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
         }
-        
+
         // Создаем новый запрос (помечаем его как tpahere)
         JustTPA.TPARequest request = new JustTPA.TPARequest(player.getUniqueId(), target.getUniqueId(), true);
         plugin.getPendingRequests().put(target.getUniqueId(), request);
-        
+
         // Сообщение отправителю
         Component senderMessage = Component.text()
                 .append(Component.text("✓ ", NamedTextColor.GREEN))
@@ -80,9 +78,9 @@ public class TPAHereCommand implements CommandExecutor, TabCompleter {
                 .append(Component.newline())
                 .append(createCancelButton(target.getName()))
                 .build();
-        
+
         player.sendMessage(senderMessage);
-        
+
         // Сообщение получателю
         Component targetMessage = Component.text()
                 .append(Component.text("✈ ", NamedTextColor.AQUA))
@@ -93,12 +91,12 @@ public class TPAHereCommand implements CommandExecutor, TabCompleter {
                 .append(Component.text(" "))
                 .append(createDenyButton())
                 .build();
-        
+
         target.sendMessage(targetMessage);
-        
+
         return true;
     }
-    
+
     private Component createCancelButton(String targetName) {
         return Component.text()
                 .append(Component.text("[✕ ОТМЕНИТЬ]", NamedTextColor.RED))
@@ -106,7 +104,7 @@ public class TPAHereCommand implements CommandExecutor, TabCompleter {
                 .hoverEvent(Component.text("Нажмите чтобы отменить запрос", NamedTextColor.GRAY))
                 .build();
     }
-    
+
     private Component createAcceptButton() {
         return Component.text()
                 .append(Component.text("[✓ ПРИНЯТЬ]", NamedTextColor.GREEN))
@@ -114,7 +112,7 @@ public class TPAHereCommand implements CommandExecutor, TabCompleter {
                 .hoverEvent(Component.text("Нажмите чтобы принять запрос", NamedTextColor.GRAY))
                 .build();
     }
-    
+
     private Component createDenyButton() {
         return Component.text()
                 .append(Component.text("[✕ ОТКЛОНИТЬ]", NamedTextColor.RED))
@@ -122,7 +120,7 @@ public class TPAHereCommand implements CommandExecutor, TabCompleter {
                 .hoverEvent(Component.text("Нажмите чтобы отклонить запрос", NamedTextColor.GRAY))
                 .build();
     }
-    
+
     private boolean isTeleportEnabled(Player player) {
         try {
             Object essentials = Bukkit.getServer().getPluginManager().getPlugin("Essentials");
@@ -136,19 +134,19 @@ public class TPAHereCommand implements CommandExecutor, TabCompleter {
         }
         return false;
     }
-    
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
-        
+
         if (args.length == 1) {
             List<String> playerNames = Bukkit.getOnlinePlayers().stream()
                     .map(Player::getName)
                     .collect(Collectors.toList());
-            
+
             StringUtil.copyPartialMatches(args[0], playerNames, completions);
         }
-        
+
         return completions;
     }
 }

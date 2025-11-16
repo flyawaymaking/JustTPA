@@ -18,12 +18,10 @@ public class TPCancelCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             sender.sendMessage(Component.text("Эта команда только для игроков!", NamedTextColor.RED));
             return true;
         }
-
-        Player player = (Player) sender;
 
         if (!player.hasPermission("justtpa.tpcancel")) {
             player.sendMessage(Component.text("У вас нет прав для использования этой команды!", NamedTextColor.RED));
