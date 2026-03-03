@@ -23,11 +23,9 @@ public class JustTPA extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // Инициализация MiniMessage и ConfigManager
         this.miniMessage = MiniMessage.miniMessage();
         this.configManager = new ConfigManager(this);
 
-        // Регистрируем команды
         TPACommand tpaCommand = new TPACommand(this);
         getCommand("tpa").setExecutor(tpaCommand);
         getCommand("tpa").setTabCompleter(tpaCommand);
@@ -62,12 +60,13 @@ public class JustTPA extends JavaPlugin {
     }
 
     private void cleanupExpiredRequests() {
-        for (Map.Entry<UUID, TPARequest> entry : pendingRequests.entrySet()) {
+        pendingRequests.entrySet().removeIf(entry -> {
             if (entry.getValue().isExpired()) {
-                pendingRequests.remove(entry.getKey());
+                TPARequest request = entry.getValue();
+                UUID targetId = entry.getKey();
 
-                Player target = Bukkit.getPlayer(entry.getKey());
-                Player sender = Bukkit.getPlayer(entry.getValue().getSender());
+                Player target = Bukkit.getPlayer(targetId);
+                Player sender = Bukkit.getPlayer(request.getSender());
 
                 if (target != null) {
                     sendMessage(target, getMessage("request.expired.target"));
@@ -75,8 +74,11 @@ public class JustTPA extends JavaPlugin {
                 if (sender != null) {
                     sendMessage(sender, getMessage("request.expired.sender"));
                 }
+
+                return true;
             }
-        }
+            return false;
+        });
     }
 
     public Component getMessage(String key) {
@@ -96,7 +98,6 @@ public class JustTPA extends JavaPlugin {
         return configManager;
     }
 
-    // Класс для хранения запросов на телепортацию
     public static class TPARequest {
         private final UUID sender;
         private final UUID target;
